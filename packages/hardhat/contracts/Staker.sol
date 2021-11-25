@@ -14,7 +14,7 @@ contract Staker {
 
     event Stake(address indexed _address, uint256 _amount);
 
-    constructor(address exampleExternalContractAddress) public {
+    constructor(address exampleExternalContractAddress) {
         exampleExternalContract = ExampleExternalContract(
             exampleExternalContractAddress
         );
@@ -37,11 +37,11 @@ contract Staker {
     }
 
     modifier deadlineReached(bool _requireReached) {
-        uint256 timeLeft = timeLeft();
+        uint256 timeRemaining = timeLeft();
         if (_requireReached) {
-            require(timeLeft == 0, "Time not reached yet");
+            require(timeRemaining == 0, "Time not reached yet");
         } else {
-            require(timeLeft > 0, "Time reached already");
+            require(timeRemaining > 0, "Time reached already");
         }
         _;
     }
@@ -83,7 +83,7 @@ contract Staker {
     // Add the `receive()` special function that receives eth and calls stake().
     // This makes sure if you send ETH directly to the contract address (w/o calling
     // stake), it updates the balance as well.
-    function receive() external payable {
+    receive() external payable {
         stake();
     }
 }
