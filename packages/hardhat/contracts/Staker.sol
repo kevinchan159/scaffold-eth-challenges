@@ -22,7 +22,7 @@ contract Staker {
 
     // Collect funds in a payable `stake()` function and track individual `balances` with a mapping:
     //  ( make sure to add a `Stake(address,uint256)` event and emit it for the frontend <List/> display )
-    function stake() public payable {
+    function stake() public payable deadlineReached(false) stakeNotCompleted {
         require(msg.sender != address(0));
 
         balances[msg.sender] = balances[msg.sender].add(msg.value);

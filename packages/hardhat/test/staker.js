@@ -15,7 +15,6 @@ describe("My staker", function () {
   let owner;
   let addr1;
   let addr2;
-  let rest;
 
   let stakerContract;
   let exampleExternalContract;
@@ -34,7 +33,7 @@ describe("My staker", function () {
       exampleExternalContract.address
     );
 
-    [owner, addr1, addr2, ...rest] = await ethers.getSigners();
+    [owner, addr1, addr2] = await ethers.getSigners();
   });
 
   describe("Test timeLeft method", () => {
@@ -52,6 +51,36 @@ describe("My staker", function () {
 
       const timeLeftAfter = await stakerContract.timeLeft();
       expect(timeLeftAfter).to.equal(timeLeftBefore.sub(secondsElapsed));
+    });
+  });
+
+  describe("Test stake method", () => {
+    it("Stake event is emitted", async () => {
+      const stakedAmount = await ethers.utils.parseEther("0.5");
+
+      await expect(stakerContract.connect(addr1).stake({ value: stakedAmount }))
+        .to.emit(stakerContract, "Stake")
+        .withArgs(addr1.address, stakedAmount);
+
+      // Check contract has correct balance after staking
+      const contractBalance = await ethers.provider.getBalance(
+        stakerContract.address
+      );
+      expect(contractBalance).to.equal(stakedAmount);
+
+      // Check contract has stored our staked amount correctly in balances
+      const addr1Balance = await stakerContract.balances(addr1.address);
+      expect(addr1Balance).to.equal(stakedAmount);
+    });
+
+    it("Stake is reverted after deadline", async () => {
+      const stakedAmount = await ethers.utils.parseEther("0.5");
+
+      await increaseWorldTimeInSeconds(180, true);
+
+      await expect(
+        stakerContract.connect(addr1).stake({ value: stakedAmount })
+      ).to.be.revertedWith("Time reached already");
     });
   });
 });
