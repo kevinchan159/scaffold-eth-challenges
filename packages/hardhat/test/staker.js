@@ -82,5 +82,21 @@ describe("My staker", function () {
         stakerContract.connect(addr1).stake({ value: stakedAmount })
       ).to.be.revertedWith("Time reached already");
     });
+
+    it("Stake is reverted if already completed", async () => {
+      const fullStake = await ethers.utils.parseEther("1");
+
+      const stakeTx = await stakerContract
+        .connect(addr1)
+        .stake({ value: fullStake });
+      await stakeTx.wait();
+
+      const executeTx = await stakerContract.connect(addr1).execute();
+      await executeTx.wait();
+
+      await expect(
+        stakerContract.connect(addr1).stake({ value: fullStake })
+      ).to.be.revertedWith("Already staked");
+    });
   });
 });

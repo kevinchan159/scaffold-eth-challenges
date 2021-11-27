@@ -48,7 +48,7 @@ contract Staker {
 
     // After some `deadline` allow anyone to call an `execute()` function
     //  It should either call `exampleExternalContract.complete{value: address(this).balance}()` to send all the value
-    function execute() public deadlineReached(true) stakeNotCompleted {
+    function execute() public deadlineReached(false) stakeNotCompleted {
         uint256 contractBalance = address(this).balance;
 
         require(contractBalance >= threshold, "Not enough contract balance");
