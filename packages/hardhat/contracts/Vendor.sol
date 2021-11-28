@@ -1,5 +1,6 @@
 pragma solidity 0.8.4;
 
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./YourToken.sol";
 
@@ -16,15 +17,49 @@ contract Vendor is Ownable {
 
     // ToDo: create a payable buyTokens() function:
     function buyTokens() public payable {
-        uint256 tokens = msg.value * tokensPerEth;
-        yourToken.transfer(msg.sender, tokens);
-        emit BuyTokens(msg.sender, msg.value, tokens);
+        require(msg.value > 0, "Need to send ETH to buy tokens");
+
+        uint256 vendorTokenBalance = yourToken.balanceOf(address(this));
+        uint256 tokensToBuy = msg.value * tokensPerEth;
+
+        require(
+            vendorTokenBalance >= tokensToBuy,
+            "Vendor doesn't have enough tokens to sell"
+        );
+        bool sent = yourToken.transfer(msg.sender, tokensToBuy);
+        require(sent, "Failed to transfer tokens from Vendor to buyer");
+
+        emit BuyTokens(msg.sender, msg.value, tokensToBuy);
     }
 
     // ToDo: create a withdraw() function that lets the owner withdraw ETH
     function withdraw() public payable onlyOwner {
-        yourToken.transfer(owner(), msg.value * tokensPerEth);
+        (bool sent, ) = msg.sender.call{value: address(this).balance}("");
+        require(sent, "Owner failed to withdraw ETH from Vendor");
     }
 
     // ToDo: create a sellTokens() function:
+    function sellTokens(uint256 tokensToSell) public payable {
+        require(
+            yourToken.balanceOf(msg.sender) >= tokensToSell,
+            "User doesn't have enough tokens to sell"
+        );
+
+        uint256 amountOfEthToReturn = tokensToSell / tokensPerEth;
+
+        require(
+            address(this).balance >= amountOfEthToReturn,
+            "Vendor doesn't have enough ETH to buy back tokens"
+        );
+
+        bool sent = yourToken.transferFrom(
+            msg.sender,
+            address(this),
+            tokensToSell
+        );
+        require(sent, "Failed to transfer tokens from seller to vendor");
+
+        (sent, ) = msg.sender.call{value: tokensToSell / tokensPerEth}("");
+        require(sent, "Failed to send ETH to user");
+    }
 }

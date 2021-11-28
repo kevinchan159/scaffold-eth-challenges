@@ -78,8 +78,8 @@ const scaffoldEthProvider = navigator.onLine
   : null;
 const poktMainnetProvider = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider(
-      "https://eth-mainnet.gateway.pokt.network/v1/lb/611156b4a585a20035148406",
-    )
+    "https://eth-mainnet.gateway.pokt.network/v1/lb/611156b4a585a20035148406",
+  )
   : null;
 const mainnetInfura = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
@@ -178,8 +178,8 @@ function App(props) {
     poktMainnetProvider && poktMainnetProvider._isProvider
       ? poktMainnetProvider
       : scaffoldEthProvider && scaffoldEthProvider._network
-      ? scaffoldEthProvider
-      : mainnetInfura;
+        ? scaffoldEthProvider
+        : mainnetInfura;
 
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
@@ -260,10 +260,8 @@ function App(props) {
   const vendorETHBalance = useBalance(localProvider, vendorAddress);
   if (DEBUG) console.log("💵 vendorETHBalance", vendorETHBalance ? ethers.utils.formatEther(vendorETHBalance) : "...");
 
-  const vendorApproval = useContractReader(readContracts, "YourToken", "allowance", [
-    address, vendorAddress
-  ]);
-  console.log("🤏 vendorApproval",vendorApproval)
+  const vendorApproval = useContractReader(readContracts, "YourToken", "allowance", [address, vendorAddress]);
+  console.log("🤏 vendorApproval", vendorApproval);
 
   const vendorTokenBalance = useContractReader(readContracts, "YourToken", "balanceOf", [vendorAddress]);
   console.log("🏵 vendorTokenBalance:", vendorTokenBalance ? ethers.utils.formatEther(vendorTokenBalance) : "...");
@@ -490,13 +488,13 @@ function App(props) {
   const [tokenSellAmount, setTokenSellAmount] = useState();
   const [isSellAmountApproved, setIsSellAmountApproved] = useState();
 
-  useEffect(()=>{
-    console.log("tokenSellAmount",tokenSellAmount)
-    const tokenSellAmountBN = tokenSellAmount && ethers.utils.parseEther("" + tokenSellAmount)
-    console.log("tokenSellAmountBN",tokenSellAmountBN)
-    setIsSellAmountApproved(vendorApproval && tokenSellAmount && vendorApproval.gte(tokenSellAmountBN))
-  },[tokenSellAmount, readContracts])
-  console.log("isSellAmountApproved",isSellAmountApproved)
+  useEffect(() => {
+    console.log("tokenSellAmount", tokenSellAmount);
+    const tokenSellAmountBN = tokenSellAmount && ethers.utils.parseEther("" + tokenSellAmount);
+    console.log("tokenSellAmountBN", tokenSellAmountBN);
+    setIsSellAmountApproved(vendorApproval && tokenSellAmount && vendorApproval.gte(tokenSellAmountBN));
+  }, [tokenSellAmount, readContracts]);
+  console.log("isSellAmountApproved", isSellAmountApproved);
 
   const ethCostToPurchaseTokens =
     tokenBuyAmount && tokensPerEth && ethers.utils.parseEther("" + tokenBuyAmount / parseFloat(tokensPerEth));
@@ -620,10 +618,7 @@ function App(props) {
                 </div>
               </Card>
             </div>
-          
-            {/* 
-            
-            Extra UI for buying the tokens back from the user using "approve" and "sellTokens"
+
             <Divider />
             <div style={{ padding: 8, marginTop: 32, width: 300, margin: "auto" }}>
               <Card title="Sell Tokens">
@@ -640,43 +635,44 @@ function App(props) {
                   />
                   <Balance balance={ethCostToPurchaseTokens} dollarMultiplier={price} />
                 </div>
-                {isSellAmountApproved?
-
+                {isSellAmountApproved ? (
                   <div style={{ padding: 8 }}>
                     <Button
                       type={"primary"}
                       loading={buying}
                       onClick={async () => {
                         setBuying(true);
-                        await tx(writeContracts.Vendor.sellTokens(tokenSellAmount && ethers.utils.parseEther(tokenSellAmount)));
+                        await tx(
+                          writeContracts.Vendor.sellTokens(tokenSellAmount && ethers.utils.parseEther(tokenSellAmount)),
+                        );
                         setBuying(false);
                       }}
                     >
                       Sell Tokens
                     </Button>
                   </div>
-                  :
+                ) : (
                   <div style={{ padding: 8 }}>
                     <Button
                       type={"primary"}
                       loading={buying}
                       onClick={async () => {
                         setBuying(true);
-                        await tx(writeContracts.YourToken.approve(readContracts.Vendor.address, tokenSellAmount && ethers.utils.parseEther(tokenSellAmount)));
+                        await tx(
+                          writeContracts.YourToken.approve(
+                            readContracts.Vendor.address,
+                            tokenSellAmount && ethers.utils.parseEther(tokenSellAmount),
+                          ),
+                        );
                         setBuying(false);
                       }}
                     >
                       Approve Tokens
                     </Button>
                   </div>
-                }
-
-
+                )}
               </Card>
             </div>
-            
-            
-            */}
 
             <div style={{ padding: 8, marginTop: 32 }}>
               <div>Vendor Token Balance:</div>
