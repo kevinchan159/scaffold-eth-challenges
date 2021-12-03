@@ -10,6 +10,11 @@ contract Vendor is Ownable {
     uint256 public constant tokensPerEth = 100;
 
     event BuyTokens(address buyer, uint256 amountOfEth, uint256 amountOfTokens);
+    event SellTokens(
+        address seller,
+        uint256 amountOfEth,
+        uint256 amountOfTokens
+    );
 
     constructor(address tokenAddress) public {
         yourToken = YourToken(tokenAddress);
@@ -59,7 +64,9 @@ contract Vendor is Ownable {
         );
         require(sent, "Failed to transfer tokens from seller to vendor");
 
-        (sent, ) = msg.sender.call{value: tokensToSell / tokensPerEth}("");
+        (sent, ) = msg.sender.call{value: amountOfEthToReturn}("");
         require(sent, "Failed to send ETH to user");
+
+        emit SellTokens(msg.sender, amountOfEthToReturn, tokensToSell);
     }
 }

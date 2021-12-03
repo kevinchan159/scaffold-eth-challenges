@@ -4,7 +4,7 @@ const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
-describe("My Dapp", function () {
+xdescribe("My Dapp", function () {
   let myContract;
 
   describe("YourContract", function () {
