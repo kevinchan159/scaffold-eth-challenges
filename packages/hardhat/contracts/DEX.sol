@@ -62,4 +62,34 @@ contract DEX {
 
         return ethBought;
     }
+
+    function deposit() public payable returns (uint256) {
+        uint256 ethReserve = address(this).balance.sub(msg.value);
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 tokenAmount = ((msg.value * tokenReserve) / ethReserve).add(1);
+
+        uint256 liquidityMinted = (msg.value * totalLiquidity) / ethReserve;
+        liquidity[msg.sender] = liquidity[msg.sender].add(liquidityMinted);
+        totalLiquidity = totalLiquidity.add(liquidityMinted);
+
+        require(token.transferFrom(msg.sender, address(this), tokenAmount));
+
+        return liquidityMinted;
+    }
+
+    function withdraw(uint256 amount) public returns (uint256, uint256) {
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 ethAmount = amount.mul(address(this).balance) / totalLiquidity;
+        uint256 tokenAmount = amount.mul(tokenReserve) / totalLiquidity;
+
+        liquidity[msg.sender] = liquidity[msg.sender].sub(ethAmount);
+        totalLiquidity = totalLiquidity.sub(ethAmount);
+
+        (bool sent, ) = msg.sender.call{value: ethAmount}("");
+        require(sent, "Failed to send the user ETH");
+
+        require(token.transfer(msg.sender, tokenAmount));
+
+        return (ethAmount, tokenAmount);
+    }
 }
